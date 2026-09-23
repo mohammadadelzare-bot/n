@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>کنترل از راه دور - اسکن QR</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@700;900&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Vazirmatn',sans-serif; background:linear-gradient(135deg,#0a0e27,#1a1f3a); min-height:100vh; display:flex; align-items:center; justify-content:center; color:#fff; padding:20px; }
+.container { max-width:500px; width:100%; text-align:center; }
+h1 { font-size:32px; margin-bottom:10px; background:linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.subtitle { color:#aaa; margin-bottom:30px; }
+.qr-box { background:#fff; padding:20px; border-radius:20px; display:inline-block; margin:20px 0; box-shadow:0 20px 60px rgba(102,126,234,0.4); }
+.info { background:#1a1f3a; padding:20px; border-radius:16px; margin-top:30px; border:1px solid #2a3254; }
+.info h3 { color:#667eea; margin-bottom:15px; }
+.info p { color:#ccc; font-size:14px; line-height:2; text-align:right; }
+.status { margin-top:20px; padding:10px; border-radius:8px; font-size:14px; }
+.online { background:#4caf50; }
+.alert { background:#ffc107; color:#333; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📱 کنترل از راه دور</h1>
+  <p class="subtitle">این QR را با دستگاه هدف اسکن کنید</p>
+
+  <div class="qr-box">
+    <canvas id="qr"></canvas>
+  </div>
+
+  <div class="info">
+    <h3>⚡ نحوه کار:</h3>
+    <p>۱. لینک بالا را در دستگاه هدف باز کنید<br>
+    ۲. دسترسی‌های لازم رو بده (صفحه، دوربین اگر خواست)<br>
+    ۳. اتصال خودکار برقرار می‌شه<br>
+    ۴. از پنل لپ‌تاپ، همه چیز رو ببین و کنترل کن</p>
+  </div>
+
+  <div class="status" id="status">⏳ در حال اتصال...</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const url = window.location.origin + window.location.pathname.replace('target.html', 't/SESSION123');
+new QRCode(document.getElementById('qr'), {
+  text: url,
+  width: 250,
+  height: 250,
+  colorDark: '#0a0e27',
+  colorLight: '#fff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+</script>
+</body>
+</html>
